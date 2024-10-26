@@ -64,7 +64,7 @@ fclose(file);
 
 //Whatever that you want to do here
 
-deleteJsonObject(rootJsonNode); //We're C programmers, we must clean up after ourselves, unlike :vomiting_face: Java
+deleteJsonObject(rootJsonNode); //We're C programmers, we must clean up after ourselves, unlike 🤮 Java
 
 //The rest of your program
 
