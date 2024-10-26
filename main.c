@@ -34,6 +34,24 @@ int main(int argc, char* argv[]){
 			printf("Could not open %s!\n", argv[1]);
 		}
 	}else printf("Please pass a filename in commandline arguments\n");
+	
+	printf("===============================\n");
+	printf("Test file writing\n");
+	printf("===============================\n");
+	jsonNode* toFile = malloc(sizeof(jsonNode));
+	toFile->key = "Hiiiii\0";
+	toFile->varType = string;
+	toFile->string = "This is a cool test!\nPlease do not resist\0";
+	toFile->sibling = (jsonNode*) malloc(sizeof(jsonNode));
+	toFile->sibling->key = "byeeeee\0";
+	toFile->sibling->varType = number;
+	toFile->sibling->number = 13.5f;
+	toFile->sibling->sibling = NULL;
+	FILE* cool = fopen("coolFileWriting.json", "w");
+	printToFileJson(cool, toFile, 0);
+	printJson(toFile, 0);
+	deleteJsonObject(toFile);
+	fclose(cool);
 /*
 	printf("\n--------\ntest dump\n---------\n");
 	file = fopen("test.gltf", "r");

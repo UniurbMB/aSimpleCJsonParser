@@ -80,6 +80,12 @@ void printArray(jsonNode* node, unsigned int level);
 void printJson(jsonNode* obj, unsigned int level);
 void printJsonNode(jsonNode* obj, unsigned int level);
 
+/*file print functions*/
+void printToFileArrayFromArray(FILE* dest, jsonArray* node, unsigned int level);
+void printToFileArray(FILE* dest, jsonNode* node, unsigned int level);
+void printToFileJson(FILE* dest, jsonNode* obj, unsigned int level);
+void printToFileJsonNode(FILE* dest, jsonNode* obj, unsigned int level);
+
 /*search functions*/
 jsonNode* findFirstSibling(const char* key, jsonNode* node);
 jsonNode* findFirstDescendant(const char* key, jsonNode* node);
@@ -520,6 +526,198 @@ void printJsonNode(jsonNode* obj, unsigned int level){
 		printf("\t");
 	}
 	printf("}\n");
+}
+
+/*FILE PRINT FUNCTIONS*/
+void printToFileArrayFromArray(FILE* dest, jsonArray* node, unsigned int level){
+	unsigned long i;
+	fprintf(dest, "[");
+	for(i = 0; i < node->size - 1; i++){
+		switch((node->node[i]).varType){
+			case string:
+				fprintf(dest, "\"%s\"", node->node[i].string);
+				break;
+			case number:
+				fprintf(dest, "%f", node->node[i].number);
+				break;
+			case object:
+				fprintf(dest, "\n");
+				printToFileJson(dest, node->node[i].object, level + 1);
+				break;
+			case array:
+				printToFileArrayFromArray(dest, &node->node[i].array, level);
+				break;
+			case jsonBool:
+				fprintf(dest, "%s", (node->node[i].jsonBool)?"true":"false");
+				break;
+			case jsonNull:
+				fprintf(dest, "null");
+				break;
+		}
+		fprintf(dest, ", ");
+	}
+	if(node->size != 0){
+		switch((node->node[i]).varType){
+			case string:
+				fprintf(dest, "%s", node->node[i].string);
+				break;
+			case number:
+				fprintf(dest, "%f", node->node[i].number);
+				break;
+			case object:
+				fprintf(dest, "\n");
+				printToFileJson(dest, node->node[i].object, level + 1);
+				break;
+			case array:
+				printToFileArrayFromArray(dest, &node->node[i].array, level);
+				break;
+			case jsonBool:
+				fprintf(dest, "%s", (node->node[i].jsonBool)?"true":"false");
+				break;
+			case jsonNull:
+				fprintf(dest, "null");
+				break;
+		}
+	}
+	fprintf(dest, "]");
+}
+
+void printToFileArray(FILE* dest, jsonNode* node, unsigned int level){
+	unsigned long i;
+	fprintf(dest, "[");
+	for(i = 0; i < node->array.size - 1; i++){
+		switch(node->array.node[i].varType){
+			case string:
+				fprintf(dest, "\"%s\"", node->array.node[i].string);
+				break;
+			case number:
+				fprintf(dest, "%f", node->array.node[i].number);
+				break;
+			case object:
+				fprintf(dest, "\n");
+				printToFileJson(dest, node->array.node[i].object, level + 1);
+				break;
+			case array:
+				printToFileArrayFromArray(dest, &node->array.node[i].array, level);
+				break;
+			case jsonBool:
+				fprintf(dest, "%s", (node->array.node[i].jsonBool)?"true":"false");
+				break;
+			case jsonNull:
+				fprintf(dest, "null");
+				break;
+		}
+		fprintf(dest, ", ");
+	}
+	if(node->array.size != 0){
+		switch((node->array.node[i]).varType){
+			case string:
+				fprintf(dest, "%s", node->array.node[i].string);
+				break;
+			case number:
+				fprintf(dest, "%f", node->array.node[i].number);
+				break;
+			case object:
+				fprintf(dest, "\n");
+				printToFileJson(dest, node->array.node[i].object, level + 1);
+				break;
+			case array:
+				printToFileArrayFromArray(dest, &node->array.node[i].array, level);
+				break;
+			case jsonBool:
+				fprintf(dest, "%s", (node->array.node[i].jsonBool)?"true":"false");
+				break;
+			case jsonNull:
+				fprintf(dest, "null");
+				break;
+		}
+	}
+	fprintf(dest, "]");
+}
+
+void printToFileJson(FILE* dest, jsonNode* obj, unsigned int level){
+	jsonNode* current = obj;
+	unsigned int i;
+	for(i = 0; i < level; i++){
+		fprintf(dest, "\t");
+	}
+	fprintf(dest, "{\n");
+	if(current == NULL)fprintf(dest, "hey the thing is NULL\n");;
+	while(current != NULL){
+		for(i = 0; i <= level; i++){
+			fprintf(dest, "\t");
+		}
+		fprintf(dest, "\"%s\" : ", current->key);
+		switch(current->varType){
+			case string:
+				fprintf(dest, "\"%s\"", current->string);
+				break;
+			case number:
+				fprintf(dest, "%f", current->number);
+				break;
+			case object:
+				printToFileJson(dest, current->object, level + 1);
+				break;
+			case array:
+				printToFileArray(dest, current, level);
+				break;
+			case jsonBool:
+				fprintf(dest, "%s", (current->jsonBool)?"true":"false");
+				break;
+			case jsonNull:
+				fprintf(dest, "null");
+				break;
+			
+		}
+		current = current->sibling;
+		if(current != NULL)fprintf(dest, ",");
+		fprintf(dest, "\n");
+	}
+	for(i = 0; i < level; i++){
+		fprintf(dest, "\t");
+	}
+	fprintf(dest, "}\n");
+}
+
+void printToFileJsonNode(FILE* dest, jsonNode* obj, unsigned int level){
+	unsigned int i;
+	for(i = 0; i < level; i++){
+		fprintf(dest, "\t");
+	}
+	fprintf(dest, "{\n");
+	if(obj == NULL)fprintf(dest, "hey the thing is NULL\n");
+	else{
+		for(i = 0; i <= level; i++){
+			fprintf(dest, "\t");
+		}
+		fprintf(dest, "\"%s\" : ", obj->key);
+		switch(obj->varType){
+			case string:
+				fprintf(dest, "\"%s\"", obj->string);
+				break;
+			case number:
+				fprintf(dest, "%f", obj->number);
+				break;
+			case object:
+				printToFileJson(dest, obj->object, level + 1);
+				break;
+			case array:
+				printToFileArray(dest, obj, level);
+				break;
+			case jsonBool:
+				fprintf(dest, "%s", (obj->jsonBool)?"true":"false");
+				break;
+			case jsonNull:
+				fprintf(dest, "null");
+				break;
+			
+		}
+		fprintf(dest, "\n");
+	}
+	for(i = 0; i < level; i++){
+		fprintf(dest, "\t");
+	}
+	fprintf(dest, "}\n");
 }
 
 /*SEARCH FUNCTIONS*/
