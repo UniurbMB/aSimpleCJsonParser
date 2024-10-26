@@ -1,3 +1,5 @@
 *.gltf
 *.json
+bin/
+examples/
 json.exe
