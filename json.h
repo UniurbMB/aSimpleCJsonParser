@@ -70,6 +70,7 @@ typedef struct jsonNodeListNode{
 /*parsing functions*/
 jsonNode* parseJsonObject(FILE* file, char* charBuffer);
 void parseJsonVar(FILE* file, char* charBuffer, jsonNode** node);
+char* parseJsonString(FILE* file, char* charBuffer);
 void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node);
 jsonNode* newJsonNode(const char* key);
 
@@ -97,8 +98,12 @@ void deleteCharList(jsonCharListNode* node);
 jsonNode* parseJsonObject(FILE* file, char* charBuffer){
 	jsonNode* node = NULL;
 	jsonNode** current = &node;
-	char buffer[128];
-	unsigned int index;
+	//char buffer[128];
+	//jsonCharListNode* cNode = NULL;
+	//jsonCharListNode** currentCNode = &cNode;
+	//jsonCharListNode** nextCNode = cNode->next;
+	//size_t stringLength;
+	//unsigned int index;
 	while(*charBuffer != '}'){
 
 		*charBuffer = fgetc(file);
@@ -110,23 +115,47 @@ jsonNode* parseJsonObject(FILE* file, char* charBuffer){
 			if((*current) == NULL){
 				printf("<How the fuck did it not allocate>\n");
 			}
+			/*
 			index = 0;
+			stringLength = 0;
 			*charBuffer = fgetc(file);
 			while(*charBuffer != '"'){
 
+				*currentCNode = malloc(sizeof(jsonCharListNode));
+				(*currentCNode)->c = *charBuffer;
+				(*currentCNode)->next = NULL;
+
+				*currentCNode = newCharListNode(*charBuffer);
+				currentCNode = &((*currentCNode)->next);
 				buffer[index] = *charBuffer;
 				*charBuffer = fgetc(file);
+				stringLength++;
 				index++;
 
 			}
+			*/
 
+			/*
 			buffer[index] = '\0';
-			(*current)->key = malloc(sizeof(char) * (index + 1));
-			strcpy((*current)->key, buffer);
+			(*current)->key = malloc(sizeof(char) * (stringLength + 1));
+			currentCNode = &cNode;
+			for(size_t i = 0; i < stringLength; i++){
+				printf("%c", (*currentCNode)->c);
+				(*current)->key[i] = (*currentCNode)->c;
+				currentCNode = &((*currentCNode)->next);
+			}
+			(*current)->key[stringLength] = '\0';
+			printf("\n");
+			*/
+			//strcpy((*current)->key, buffer);
+			(*current)->key = parseJsonString(file, charBuffer);
 			while(*charBuffer != ':')*charBuffer = fgetc(file);
 			parseJsonVar(file, charBuffer, current);
 
 			current = &(*current)->sibling;
+			//currentCNode = &cNode;
+			//deleteCharList(cNode);
+			//cNode = NULL;
 		}
 	}
 	return node;
@@ -159,6 +188,9 @@ void parseJsonVar(FILE* file, char* charBuffer, jsonNode** node){
 				break;
 			/*string*/
 			case '"':
+				(*node)->varType = string;
+				(*node)->string = parseJsonString(file, charBuffer);
+				/*
 				*charBuffer = fgetc(file);
 				(*node)->varType = string;
 				index = 0;
@@ -171,6 +203,7 @@ void parseJsonVar(FILE* file, char* charBuffer, jsonNode** node){
 				(*node)->string = malloc(sizeof(char)*(index+1));
 
 				strcpy((*node)->string, buffer);
+				*/
 				if(*charBuffer == '"')*charBuffer = fgetc(file);
 				break;
 			/*array*/
@@ -192,6 +225,38 @@ void parseJsonVar(FILE* file, char* charBuffer, jsonNode** node){
 	while(*charBuffer != ',' && *charBuffer != '}' && *charBuffer != ']'){
 		*charBuffer = fgetc(file);
 	}
+}
+
+char* parseJsonString(FILE* file, char* charBuffer){
+	char* result = NULL;
+	jsonCharListNode* cNode = NULL;
+	jsonCharListNode** currentCNode = &cNode;
+	size_t stringLength = 0;
+	*charBuffer = fgetc(file);
+
+	while(*charBuffer != '"'){
+		if(*charBuffer == '\\'){
+			*charBuffer = fgetc(file);
+		}
+		*currentCNode = newCharListNode(*charBuffer);
+		currentCNode = &((*currentCNode)->next);
+		*charBuffer = fgetc(file);
+		stringLength++;
+	}
+
+	result = malloc(sizeof(char) * (stringLength + 1));
+	currentCNode = &cNode;
+
+	for(size_t i = 0; i < stringLength; i++){
+		printf("%c", (*currentCNode)->c);
+		result[i] = (*currentCNode)->c;
+		currentCNode = &((*currentCNode)->next);
+	}
+
+	result[stringLength] = '\0';
+	printf("\nFinalString %s\n", result);
+	deleteCharList(cNode);
+	return result;
 }
 
 void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
@@ -240,6 +305,10 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 					break;
 				/*string*/
 				case '"':
+					(*current) = malloc(sizeof(jsonArrayListNode));
+					(*current)->varType = string;
+					(*current)->string = parseJsonString(file, charBuffer);
+					/*
 					*charBuffer = fgetc(file);
 					(*current) = malloc(sizeof(jsonArrayListNode));
 					(*current)->varType = string;
@@ -252,6 +321,7 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 					(*current)->string = malloc(sizeof(char)*(index+1));
 					buffer[index] = '\0';
 					strcpy((*current)->string, buffer);
+					*/
 					(*current)->next = NULL;
 					current = &(*current)->next;
 					size++;
