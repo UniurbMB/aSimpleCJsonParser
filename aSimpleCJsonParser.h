@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 /*TYPE DEFENITIONS*/
-typedef enum jsonVarType{string, number, object, array, jsonBool, jsonNull}jsonVarType;
+typedef enum jsonVarType{json_string, json_number, json_object, json_array, json_bool, json_null}jsonVarType;
 
 //typedef enum bool{false, true}bool;
 
@@ -26,8 +26,8 @@ typedef struct jsonArrayNode{
 		float number;
 		struct jsonNode* object;
 		struct jsonArray array;
-		bool jsonBool;
-		void* jsonNull;
+		bool bool_;
+		void* null;
 	};
 	jsonVarType varType;
 }jsonArrayNode;
@@ -38,8 +38,8 @@ typedef struct jsonArrayListNode{
 		float number;
 		struct jsonNode* object;
 		struct jsonArray array;
-		bool jsonBool;
-		void* jsonNull;
+		bool bool_;
+		void* null;
 	};
 	jsonVarType varType;
 	struct jsonArrayListNode* next;
@@ -53,8 +53,8 @@ typedef struct jsonNode{
 		float number;
 		struct jsonNode* object;
 		struct jsonArray array;
-		bool jsonBool;
-		void* jsonNull;
+		bool bool_;
+		void* null;
 	};
 	jsonVarType varType;
 	struct jsonNode* sibling;
@@ -131,41 +131,41 @@ void parseJsonVar(FILE* file, char* charBuffer, jsonNode** node){
 	unsigned int index;
 	char buffer[128];
 	if(fscanf(file, "%f", &temp)){
-		(*node)->varType = number;
+		(*node)->varType = json_number;
 		(*node)->number = temp;
 	}else{
 		*charBuffer = fgetc(file);
 		switch(*charBuffer){
 			/*boolean cases*/
 			case 't':
-				(*node)->varType = jsonBool;
-				(*node)->jsonBool = true;
+				(*node)->varType = json_bool;
+				(*node)->bool_ = true;
 				break;
 			case 'f':
-				(*node)->varType = jsonBool;
-				(*node)->jsonBool = false;
+				(*node)->varType = json_bool;
+				(*node)->bool_ = false;
 				break;
 			/*null case*/
 			case 'n':
-				(*node)->varType = jsonNull;
-				(*node)->jsonNull = NULL;
+				(*node)->varType = json_null;
+				(*node)->null = NULL;
 				break;
 			/*string*/
 			case '"':
-				(*node)->varType = string;
+				(*node)->varType = json_string;
 				(*node)->string = parseJsonString(file, charBuffer);
 				if(*charBuffer == '"')*charBuffer = fgetc(file);
 				break;
 			/*array*/
 			case '[':
-				(*node)->varType = array;
+				(*node)->varType = json_array;
 				parseJsonArray(file, charBuffer, &((*node)->array));
 				while(*charBuffer != ']')*charBuffer = fgetc(file);
 				if(*charBuffer == ']')*charBuffer = fgetc(file);
 				break;
 			/*object*/
 			case '{':
-				(*node)->varType = object;
+				(*node)->varType = json_object;
 				(*node)->object = parseJsonObject(file, charBuffer);
 				if(*charBuffer == '}')*charBuffer = fgetc(file);
 				break;
@@ -217,7 +217,7 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 	while(*charBuffer != ']'){
 		if(fscanf(file, "%f", &temp)){
 			*current = malloc(sizeof(jsonArrayListNode));
-			(*current)->varType = number;
+			(*current)->varType = json_number;
 			(*current)->number = temp;
 			(*current)->next = NULL;
 			current = &(*current)->next;
@@ -228,16 +228,16 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 				/*boolean cases*/
 				case 't':
 					(*current) = malloc(sizeof(jsonArrayListNode));
-					(*current)->varType = jsonBool;
-					(*current)->jsonBool = true;
+					(*current)->varType = json_bool;
+					(*current)->bool_ = true;
 					(*current)->next = NULL;
 					current = &(*current)->next;
 					size++;
 					break;
 				case 'f':
 					(*current) = malloc(sizeof(jsonArrayListNode));
-					(*current)->varType = jsonBool;
-					(*current)->jsonBool = false;
+					(*current)->varType = json_bool;
+					(*current)->bool_ = false;
 					(*current)->next = NULL;
 					current = &(*current)->next;
 					size++;
@@ -245,8 +245,8 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 				/*null case*/
 				case 'n':
 					(*current) = malloc(sizeof(jsonArrayListNode));
-					(*current)->varType = jsonNull;
-					(*current)->jsonNull = NULL;
+					(*current)->varType = json_null;
+					(*current)->null = NULL;
 					(*current)->next = NULL;
 					current = &(*current)->next;
 					size++;
@@ -254,7 +254,7 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 				/*string*/
 				case '"':
 					(*current) = malloc(sizeof(jsonArrayListNode));
-					(*current)->varType = string;
+					(*current)->varType = json_string;
 					(*current)->string = parseJsonString(file, charBuffer);
 					(*current)->next = NULL;
 					current = &(*current)->next;
@@ -265,7 +265,7 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 				case '[':
 					*current = malloc(sizeof(jsonArrayListNode));
 					(*current)->next = NULL;
-					(*current)->varType = array;
+					(*current)->varType = json_array;
 					parseJsonArray(file, charBuffer, (&((*current)->array)));
 					if(*charBuffer == ']')*charBuffer = fgetc(file);
 					current = &(*current)->next;
@@ -274,7 +274,7 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 				/*object*/
 				case '{':
 					*current = malloc(sizeof(jsonArrayListNode));
-					(*current)->varType = object;
+					(*current)->varType = json_object;
 					(*current)->object = parseJsonObject(file, charBuffer);
 					if(*charBuffer == '}')*charBuffer = fgetc(file);
 					(*current)->next = NULL;
@@ -293,29 +293,29 @@ void parseJsonArray(FILE* file, char* charBuffer, jsonArray* node){
 	index = 0;
 	for(index = 0; index < size; index++){
 		switch((*current)->varType){
-			case string:
+			case json_string:
 				node->node[index].string = (*current)->string;
-				node->node[index].varType = string;
+				node->node[index].varType = json_string;
 				break;
-			case number:
+			case json_number:
 				node->node[index].number = (*current)->number;
-				node->node[index].varType = number;
+				node->node[index].varType = json_number;
 				break;
-			case object:
+			case json_object:
 				node->node[index].object = (*current)->object;
-				node->node[index].varType = object;
+				node->node[index].varType = json_object;
 				break;
-			case array:
+			case json_array:
 				node->node[index].array = (*current)->array;
-				node->node[index].varType = array;
+				node->node[index].varType = json_array;
 				break;
-			case jsonBool:
-				node->node[index].jsonBool = (*current)->jsonBool;
-				node->node[index].varType = jsonBool;
+			case json_bool:
+				node->node[index].bool_ = (*current)->bool_;
+				node->node[index].varType = json_bool;
 				break;
-			case jsonNull:
-				node->node[index].jsonNull = (*current)->jsonNull;
-				node->node[index].varType = jsonNull;
+			case json_null:
+				node->node[index].null = (*current)->null;
+				node->node[index].varType = json_null;
 				break;
 		}
 		
@@ -342,23 +342,23 @@ void printArrayFromArray(jsonArray* node, unsigned int level){
 	printf("[");
 	for(i = 0; i < node->size - 1; i++){
 		switch((node->node[i]).varType){
-			case string:
+			case json_string:
 				printf("\"%s\"", node->node[i].string);
 				break;
-			case number:
+			case json_number:
 				printf("%f", node->node[i].number);
 				break;
-			case object:
+			case json_object:
 				printf("\n");
 				printJson(node->node[i].object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printArrayFromArray(&node->node[i].array, level);
 				break;
-			case jsonBool:
-				printf("%s", (node->node[i].jsonBool)?"true":"false");
+			case json_bool:
+				printf("%s", (node->node[i].bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				printf("null");
 				break;
 		}
@@ -366,23 +366,23 @@ void printArrayFromArray(jsonArray* node, unsigned int level){
 	}
 	if(node->size != 0){
 		switch((node->node[i]).varType){
-			case string:
+			case json_string:
 				printf("%s", node->node[i].string);
 				break;
-			case number:
+			case json_number:
 				printf("%f", node->node[i].number);
 				break;
-			case object:
+			case json_object:
 				printf("\n");
 				printJson(node->node[i].object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printArrayFromArray(&node->node[i].array, level);
 				break;
-			case jsonBool:
-				printf("%s", (node->node[i].jsonBool)?"true":"false");
+			case json_bool:
+				printf("%s", (node->node[i].bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				printf("null");
 				break;
 		}
@@ -395,23 +395,23 @@ void printArray(jsonNode* node, unsigned int level){
 	printf("[");
 	for(i = 0; i < node->array.size - 1; i++){
 		switch(node->array.node[i].varType){
-			case string:
+			case json_string:
 				printf("\"%s\"", node->array.node[i].string);
 				break;
-			case number:
+			case json_number:
 				printf("%f", node->array.node[i].number);
 				break;
-			case object:
+			case json_object:
 				printf("\n");
 				printJson(node->array.node[i].object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printArrayFromArray(&node->array.node[i].array, level);
 				break;
-			case jsonBool:
-				printf("%s", (node->array.node[i].jsonBool)?"true":"false");
+			case json_bool:
+				printf("%s", (node->array.node[i].bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				printf("null");
 				break;
 		}
@@ -419,23 +419,23 @@ void printArray(jsonNode* node, unsigned int level){
 	}
 	if(node->array.size != 0){
 		switch((node->array.node[i]).varType){
-			case string:
+			case json_string:
 				printf("%s", node->array.node[i].string);
 				break;
-			case number:
+			case json_number:
 				printf("%f", node->array.node[i].number);
 				break;
-			case object:
+			case json_object:
 				printf("\n");
 				printJson(node->array.node[i].object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printArrayFromArray(&node->array.node[i].array, level);
 				break;
-			case jsonBool:
-				printf("%s", (node->array.node[i].jsonBool)?"true":"false");
+			case json_bool:
+				printf("%s", (node->array.node[i].bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				printf("null");
 				break;
 		}
@@ -457,22 +457,22 @@ void printJson(jsonNode* obj, unsigned int level){
 		}
 		printf("%s : ", current->key);
 		switch(current->varType){
-			case string:
+			case json_string:
 				printf("\"%s\"", current->string);
 				break;
-			case number:
+			case json_number:
 				printf("%f", current->number);
 				break;
-			case object:
+			case json_object:
 				printJson(current->object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printArray(current, level);
 				break;
-			case jsonBool:
-				printf("%s", (current->jsonBool)?"true":"false");
+			case json_bool:
+				printf("%s", (current->bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				printf("null");
 				break;
 			
@@ -500,22 +500,22 @@ void printJsonNode(jsonNode* obj, unsigned int level){
 		}
 		printf("%s : ", obj->key);
 		switch(obj->varType){
-			case string:
+			case json_string:
 				printf("\"%s\"", obj->string);
 				break;
-			case number:
+			case json_number:
 				printf("%f", obj->number);
 				break;
-			case object:
+			case json_object:
 				printJson(obj->object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printArray(obj, level);
 				break;
-			case jsonBool:
-				printf("%s", (obj->jsonBool)?"true":"false");
+			case json_bool:
+				printf("%s", (obj->bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				printf("null");
 				break;
 			
@@ -534,23 +534,23 @@ void printToFileArrayFromArray(FILE* dest, jsonArray* node, unsigned int level){
 	fprintf(dest, "[");
 	for(i = 0; i < node->size - 1; i++){
 		switch((node->node[i]).varType){
-			case string:
+			case json_string:
 				fprintf(dest, "\"%s\"", node->node[i].string);
 				break;
-			case number:
+			case json_number:
 				fprintf(dest, "%f", node->node[i].number);
 				break;
-			case object:
+			case json_object:
 				fprintf(dest, "\n");
 				printToFileJson(dest, node->node[i].object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printToFileArrayFromArray(dest, &node->node[i].array, level);
 				break;
-			case jsonBool:
-				fprintf(dest, "%s", (node->node[i].jsonBool)?"true":"false");
+			case json_bool:
+				fprintf(dest, "%s", (node->node[i].bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				fprintf(dest, "null");
 				break;
 		}
@@ -558,23 +558,23 @@ void printToFileArrayFromArray(FILE* dest, jsonArray* node, unsigned int level){
 	}
 	if(node->size != 0){
 		switch((node->node[i]).varType){
-			case string:
+			case json_string:
 				fprintf(dest, "%s", node->node[i].string);
 				break;
-			case number:
+			case json_number:
 				fprintf(dest, "%f", node->node[i].number);
 				break;
-			case object:
+			case json_object:
 				fprintf(dest, "\n");
 				printToFileJson(dest, node->node[i].object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printToFileArrayFromArray(dest, &node->node[i].array, level);
 				break;
-			case jsonBool:
-				fprintf(dest, "%s", (node->node[i].jsonBool)?"true":"false");
+			case json_bool:
+				fprintf(dest, "%s", (node->node[i].bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				fprintf(dest, "null");
 				break;
 		}
@@ -587,23 +587,23 @@ void printToFileArray(FILE* dest, jsonNode* node, unsigned int level){
 	fprintf(dest, "[");
 	for(i = 0; i < node->array.size - 1; i++){
 		switch(node->array.node[i].varType){
-			case string:
+			case json_string:
 				fprintf(dest, "\"%s\"", node->array.node[i].string);
 				break;
-			case number:
+			case json_number:
 				fprintf(dest, "%f", node->array.node[i].number);
 				break;
-			case object:
+			case json_object:
 				fprintf(dest, "\n");
 				printToFileJson(dest, node->array.node[i].object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printToFileArrayFromArray(dest, &node->array.node[i].array, level);
 				break;
-			case jsonBool:
-				fprintf(dest, "%s", (node->array.node[i].jsonBool)?"true":"false");
+			case json_bool:
+				fprintf(dest, "%s", (node->array.node[i].bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				fprintf(dest, "null");
 				break;
 		}
@@ -611,23 +611,23 @@ void printToFileArray(FILE* dest, jsonNode* node, unsigned int level){
 	}
 	if(node->array.size != 0){
 		switch((node->array.node[i]).varType){
-			case string:
+			case json_string:
 				fprintf(dest, "%s", node->array.node[i].string);
 				break;
-			case number:
+			case json_number:
 				fprintf(dest, "%f", node->array.node[i].number);
 				break;
-			case object:
+			case json_object:
 				fprintf(dest, "\n");
 				printToFileJson(dest, node->array.node[i].object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printToFileArrayFromArray(dest, &node->array.node[i].array, level);
 				break;
-			case jsonBool:
-				fprintf(dest, "%s", (node->array.node[i].jsonBool)?"true":"false");
+			case json_bool:
+				fprintf(dest, "%s", (node->array.node[i].bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				fprintf(dest, "null");
 				break;
 		}
@@ -649,22 +649,22 @@ void printToFileJson(FILE* dest, jsonNode* obj, unsigned int level){
 		}
 		fprintf(dest, "\"%s\" : ", current->key);
 		switch(current->varType){
-			case string:
+			case json_string:
 				fprintf(dest, "\"%s\"", current->string);
 				break;
-			case number:
+			case json_number:
 				fprintf(dest, "%f", current->number);
 				break;
-			case object:
+			case json_object:
 				printToFileJson(dest, current->object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printToFileArray(dest, current, level);
 				break;
-			case jsonBool:
-				fprintf(dest, "%s", (current->jsonBool)?"true":"false");
+			case json_bool:
+				fprintf(dest, "%s", (current->bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				fprintf(dest, "null");
 				break;
 			
@@ -692,22 +692,22 @@ void printToFileJsonNode(FILE* dest, jsonNode* obj, unsigned int level){
 		}
 		fprintf(dest, "\"%s\" : ", obj->key);
 		switch(obj->varType){
-			case string:
+			case json_string:
 				fprintf(dest, "\"%s\"", obj->string);
 				break;
-			case number:
+			case json_number:
 				fprintf(dest, "%f", obj->number);
 				break;
-			case object:
+			case json_object:
 				printToFileJson(dest, obj->object, level + 1);
 				break;
-			case array:
+			case json_array:
 				printToFileArray(dest, obj, level);
 				break;
-			case jsonBool:
-				fprintf(dest, "%s", (obj->jsonBool)?"true":"false");
+			case json_bool:
+				fprintf(dest, "%s", (obj->bool_)?"true":"false");
 				break;
-			case jsonNull:
+			case json_null:
 				fprintf(dest, "null");
 				break;
 			
@@ -749,7 +749,7 @@ jsonNode* findFirstDescendant(const char* key, jsonNode* node){
 					result = head->node;
 					break;
 				}else{
-					if(head->node->varType == object){
+					if(head->node->varType == json_object){
 						(*tail)->next = malloc(sizeof(jsonNodeListNode));
 						tail = &((*tail)->next);
 						(*tail)->next = NULL;
@@ -780,13 +780,13 @@ void deleteJsonArray(jsonArray* var){
 	unsigned int i;
 	for(i = 0; i < var->size; i++){
 		switch((var->node[i]).varType){
-			case string:
+			case json_string:
 				free(var->node[i].string);
 				break;
-			case object:
+			case json_object:
 				deleteJsonObject(var->node[i].object);
 				break;
-			case array:
+			case json_array:
 				deleteJsonArray(&(var->node[i].array));
 				break;
 		}
@@ -797,13 +797,13 @@ void deleteJsonArray(jsonArray* var){
 void deleteJsonObject(jsonNode* obj){
 	if(obj->sibling != NULL)deleteJsonObject(obj->sibling);
 	switch(obj->varType){
-		case string:
+		case json_string:
 			free(obj->string);
 			break;
-		case object:
+		case json_object:
 			deleteJsonObject(obj->object);
 			break;
-		case array:
+		case json_array:
 			deleteJsonArray(&(obj->array));
 			break;
 	}

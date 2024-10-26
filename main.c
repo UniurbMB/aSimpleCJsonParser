@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "json.h"
+#include "aSimpleCJsonParser.h"
 
 int main(int argc, char* argv[]){
 	char buffer[128];
@@ -40,11 +40,11 @@ int main(int argc, char* argv[]){
 	printf("===============================\n");
 	jsonNode* toFile = malloc(sizeof(jsonNode));
 	toFile->key = "Hiiiii\0";
-	toFile->varType = string;
+	toFile->varType = json_string;
 	toFile->string = "This is a cool test!\nPlease do not resist\0";
 	toFile->sibling = (jsonNode*) malloc(sizeof(jsonNode));
 	toFile->sibling->key = "byeeeee\0";
-	toFile->sibling->varType = number;
+	toFile->sibling->varType = json_number;
 	toFile->sibling->number = 13.5f;
 	toFile->sibling->sibling = NULL;
 	FILE* cool = fopen("coolFileWriting.json", "w");
