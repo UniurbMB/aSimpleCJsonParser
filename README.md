@@ -165,6 +165,7 @@ jsonNode* firstKeyNodeFromSecond = findFirstSibling("first key", secondKeyNode);
 
 > [!CAUTION]
 > This parser does **NOT** include any functions to create or modify nodes, and as such they have to be done __by hand__. Below is an example of how it would be done.
+> Also, I would not recommend doing any character escaping, if you plan on rewriting the string values a bunch of times
 
 ```c
 //Helper function to assign string values
