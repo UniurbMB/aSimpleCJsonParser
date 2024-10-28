@@ -167,25 +167,47 @@ jsonNode* firstKeyNodeFromSecond = findFirstSibling("first key", secondKeyNode);
 > This parser does **NOT** include any functions to create or modify nodes, and as such they have to be done __by hand__. Below is an example of how it would be done.
 
 ```c
+//Helper function to assign string values
+void assignString(const char* source, char** dest){
+	size_t s = strlen(source) + 1;
+	*dest = calloc(s, sizeof(char));
+	strcpy(*dest, source);
+}
+
 //Create the root node
 jsonNode* myRootNode = malloc(sizeof(jsonNode));
 
+//Give the node a key value
+assignString("Horrible way of creating stuff", &(myRootNode->key));
+
 //Assign it a string variable
 myRootNode->varType = string;
-myRootNode->string = "Evil incarnate\0";
+assignString("Evil incarnate", &(myRootNode->string);
 
-//give the root node a sibling
+//Give the root node a sibling
 myRootNode->sibling = malloc(sizeof(jsonNode));
 
-//assign the sibling node a number variable
+//Give the node a key value
+assignString("number stuff", &(myRootNode->sibling->key))
+
+//Assign the sibling node a number variable
 myRootNode->sibling->varType = number;
 myRootNode->sibling->number = 42;
 
-//end the json object
+//End the json object
 myRootNode->sibling->sibling = NULL;
 
 
 //Be sure to deleteJsonObject(myRootNode) after you're done working with this!
+```
+
+Which will produce the following JSON file when printed
+
+```json
+{
+	"Horrible way of creating stuff" : "Evil incarnate",
+	"number stuff" : 42.0000
+}
 ```
 
 ### Outputting JSON objects
