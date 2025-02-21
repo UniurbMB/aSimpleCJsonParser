@@ -135,6 +135,10 @@ void parseJsonVar(FILE* file, char* charBuffer, jsonNode** node){
 		(*node)->number = temp;
 	}else{
 		*charBuffer = fgetc(file);
+		if(*charBuffer == 'l'){
+			fseek(file, -3, SEEK_CUR);
+			*charBuffer = fgetc(file);
+		}
 		switch(*charBuffer){
 			/*boolean cases*/
 			case 't':
@@ -169,6 +173,8 @@ void parseJsonVar(FILE* file, char* charBuffer, jsonNode** node){
 				(*node)->object = parseJsonObject(file, charBuffer);
 				if(*charBuffer == '}')*charBuffer = fgetc(file);
 				break;
+			default:
+				fprintf(stderr, "Failed to parse a variable!\n");
 		}
 	}
 	
