@@ -138,6 +138,9 @@ void parseJsonVar(FILE* file, char* charBuffer, jsonNode** node){
 		if(*charBuffer == 'l'){
 			fseek(file, -3, SEEK_CUR);
 			*charBuffer = fgetc(file);
+		}else if(*charBuffer == 'u'){
+			fseek(file, -2, SEEK_CUR);
+			*charBuffer = fgetc(file);
 		}
 		switch(*charBuffer){
 			/*boolean cases*/
