@@ -100,6 +100,8 @@ jsonCharListNode* newCharListNode(char c);
 void deleteCharList(jsonCharListNode* node);
 
 /*FUNCTION DEFINITIONS*/
+
+#ifndef JSON_PARSER_H_DO_NOT_USE_HEADER_DEFINITIONS
 /*parsing functions*/
 jsonNode* parseJsonObject(FILE* file, char* charBuffer){
 	jsonNode* node = NULL;
@@ -840,4 +842,5 @@ void deleteCharList(jsonCharListNode* node){
 	}
 	free(node);
 }
+#endif
 #endif
