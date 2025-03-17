@@ -6,7 +6,7 @@ This is a simple JSON parser written in C for C projects.
 - Writing JSON files
 - Searching within JSON files (or objects already loaded to be precise)
 - modifying JSON objects
-- basic character escaping
+- basic character escaping (but it's best you avoid it at all costs)
 ## Features that are not included
 - Creating JSON nodes (you have to do that by hand)
 - Verifying JSON files
